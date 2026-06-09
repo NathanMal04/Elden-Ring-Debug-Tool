@@ -8,12 +8,12 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     
     - name: setup .NET
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 6.0.x
         
@@ -41,7 +41,7 @@ jobs:
       run: move 'Elden Ring Debug Tool.7z' './src/Elden-Ring-Debug-Tool-WPF/bin/Publish/Elden Ring Debug Tool ${{steps.get-version.outputs.assembly-version}}.7z'
 
     - name: publish artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: publish
         path: src/Elden-Ring-Debug-Tool-WPF/bin/Publish/Elden Ring Debug Tool ${{steps.get-version.outputs.assembly-version}}.7z

@@ -104,6 +104,22 @@ namespace Elden_Ring_Debug_Tool_ViewModels.ViewModels
             }
         }
         
+        // Milliseconds between game-memory polls / UI refreshes. Lower is more responsive but heavier
+        // on the UI thread; raising this is the recommended fix for stutter/freezes under Proton/Wine.
+        private int _updateInterval = Math.Max(1, Settings.UpdateInterval);
+        public int UpdateInterval
+        {
+            get => _updateInterval;
+            set
+            {
+                int clamped = Math.Max(1, value);
+                if (SetField(ref _updateInterval, clamped))
+                {
+                    Settings.UpdateInterval = UpdateInterval;
+                }
+            }
+        }
+
         private bool _hideDlc = Settings.HideDlc;
         public bool HideDlc
         {

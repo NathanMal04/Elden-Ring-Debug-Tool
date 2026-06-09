@@ -28,6 +28,7 @@ namespace Elden_Ring_Debug_Tool_ViewModels.ViewModels
         }
 
         private System.Timers.Timer _updateTimer { get; } = new();
+        private volatile bool _disposed;
         public ICommand OpenGitHubCommand { get; set; }
 
         public bool ShowWarning
@@ -130,9 +131,14 @@ namespace Elden_Ring_Debug_Tool_ViewModels.ViewModels
                 UpdateInfo = "Something is very broke, contact Elden Ring Debug Tool repo owner";
                 MessageBox.Show(ex.Message);
             }
-            _updateTimer.Interval = 16;
+            // AutoReset is left off so the next tick is only scheduled once the current update has
+            // fully completed (see UpdateTimer_Elapsed). With AutoReset on, the timer keeps firing
+            // every interval even while a previous, blocking Dispatcher.Invoke is still running, which
+            // floods the WPF UI thread and freezes the window (notably under Proton/Wine).
+            _updateTimer.AutoReset = false;
+            _updateTimer.Interval = SettingsViewViewModel.UpdateInterval;
             _updateTimer.Elapsed += UpdateTimer_Elapsed;
-            _updateTimer.Enabled = true;
+            _updateTimer.Start();
         }
 
         private SettingsViewViewModel _settingsViewViewModel;
@@ -267,6 +273,7 @@ namespace Elden_Ring_Debug_Tool_ViewModels.ViewModels
         }
         private void Dispose(object sender, ExitEventArgs e)
         {
+            _disposed = true;
             _updateTimer.Stop();
             DebugViewViewModel.Dispose();
             SettingsViewViewModel.Dispose();
@@ -274,39 +281,53 @@ namespace Elden_Ring_Debug_Tool_ViewModels.ViewModels
         }
         private void UpdateTimer_Elapsed(object? sender, ElapsedEventArgs e)
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            try
             {
-                UpdateMainProperties();
-                if (!Hook.Hooked) return;
-                if (Hook.Loaded && Hook.Setup)
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    if (!GameLoaded)
+                    UpdateMainProperties();
+                    if (!Hook.Hooked) return;
+                    if (Hook.Loaded && Hook.Setup)
                     {
-                        GameLoaded = true;
-                        Reading = true;
-                        ReloadAllViewModels();
-                        Reading = false;
-                        EnableAllCtrls(true);
+                        if (!GameLoaded)
+                        {
+                            GameLoaded = true;
+                            Reading = true;
+                            ReloadAllViewModels();
+                            Reading = false;
+                            EnableAllCtrls(true);
+                        }
+                        else
+                        {
+                            Reading = true;
+                            UpdateProperties();
+                            UpdateAllViewModels();
+                            Reading = false;
+                        }
                     }
-                    else
+                    else if (GameLoaded)
                     {
                         Reading = true;
                         UpdateProperties();
-                        UpdateAllViewModels();
+                        ResetAllViewModels();
+                        //Hook.UpdateName();
+                        EnableAllCtrls(false);
+                        GameLoaded = false;
                         Reading = false;
                     }
-                }
-                else if (GameLoaded)
+                });
+            }
+            finally
+            {
+                // Schedule the next update only now that this one has finished. Re-reading the interval
+                // each cycle lets changes from the settings tab take effect live. Guard against the app
+                // shutting down so we don't revive the timer after Dispose has stopped it.
+                if (!_disposed)
                 {
-                    Reading = true;
-                    UpdateProperties();
-                    ResetAllViewModels();
-                    //Hook.UpdateName();
-                    EnableAllCtrls(false);
-                    GameLoaded = false;
-                    Reading = false;
+                    _updateTimer.Interval = SettingsViewViewModel.UpdateInterval;
+                    _updateTimer.Start();
                 }
-            });
+            }
         }
 
         private void UpdateMainProperties()

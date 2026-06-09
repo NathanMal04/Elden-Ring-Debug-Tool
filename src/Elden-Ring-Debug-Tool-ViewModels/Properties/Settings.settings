@@ -29,6 +29,9 @@
     <Setting Name="Init" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="UpdateInterval" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">16</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
 

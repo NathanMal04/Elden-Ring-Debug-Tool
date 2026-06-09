@@ -30,6 +30,13 @@
                     <Line Width="20" Visibility="Hidden"/>
                     <wpfTool:TimeSpanUpDown Text="Load Timer" Width="100"/>
                 </StackPanel>
+                <Line Height="10" Visibility="Hidden"/>
+                <StackPanel Orientation="Horizontal">
+                    <Label Content="Update Interval (ms): "
+                           ToolTip="Time between game-memory polls. Raise this if the window stutters or freezes (e.g. on Proton/Wine)."/>
+                    <Line Width="20" Visibility="Hidden"/>
+                    <wpfTool:IntegerUpDown Value="{Binding UpdateInterval}" Minimum="1" Maximum="5000" Increment="1" Width="100"/>
+                </StackPanel>
             </StackPanel>
         </GroupBox>
     </Grid>

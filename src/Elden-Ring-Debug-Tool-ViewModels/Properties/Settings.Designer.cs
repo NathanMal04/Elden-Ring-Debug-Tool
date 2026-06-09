@@ -129,5 +129,17 @@ namespace Elden_Ring_Debug_Tool_ViewModels.Properties {
                 this["Init"] = value;
             }
         }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("16")]
+        public int UpdateInterval {
+            get {
+                return ((int)(this["UpdateInterval"]));
+            }
+            set {
+                this["UpdateInterval"] = value;
+            }
+        }
     }
 }

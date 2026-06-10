@@ -1,0 +1,14 @@
+<Project>
+
+  <!--
+    Supplies .NET Framework reference assemblies via NuGet so legacy net4x projects in the
+    Erd-Tools submodule (PropertyHook targets .NET Framework 4.6.1) compile on CI runners
+    that no longer ship that targeting pack (error MSB3644). This package is a no-op for the
+    .NET 6 (.NETCoreApp) projects, so it is safe to apply solution-wide. PrivateAssets=all
+    keeps it out of downstream dependency graphs.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

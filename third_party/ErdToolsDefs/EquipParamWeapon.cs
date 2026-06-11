@@ -20,7 +20,7 @@ namespace Erd_Tools.Models.Params.Defs
     {
         public WeaponType wepType { get; }
 
-        public EquipParamWeapon(Param.Row row)
+        public EquipParamWeapon(FSParam.Param.Row row)
         {
             wepType = (WeaponType)Convert.ToInt32(row.GetCellHandleOrThrow("wepType").Value);
         }

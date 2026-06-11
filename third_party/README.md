@@ -12,6 +12,13 @@ locally via the command below.
 - **FSParam/** — `Erd-Tools.csproj` references `..\FSParam\FSParam.csproj`; `ErdHook.cs`
   uses `FSParam.Param.Read(...)` / `FSParam.Param.Row` for live-read params.
 - **StudioUtils/** — required by `FSParam.csproj` (`StridedByteArray`).
+- **ErdToolsDefs/EquipParamWeapon.cs** — Erd-Tools' own `Erd_Tools.Models.Params.Defs.EquipParamWeapon`
+  class, referenced by `ErdHook.cs` but never committed to the submodule at this pin. Copied into
+  `src/Erd-Tools/src/Erd-Tools/Models/Params/Defs/`. Reconstructed: only the `wepType` discriminator
+  ErdHook needs is implemented; the `WeaponType` enum values were recovered from the **compiled
+  v0.8.6.2 assembly** (extracted from the single-file exe) and cross-checked against
+  `Models/Items/Weapon.cs`, so the numeric codes are authoritative. Member names follow ErdHook's
+  usage (the refactor renamed some DLC entries and merged the ammo codes into `WeaponType`).
 
 ## Provenance
 
@@ -41,13 +48,16 @@ Run from the repo root before building the solution (mirrors the CI step):
 
 ```pwsh
 # PowerShell (Windows)
-Copy-Item third_party/FSParam/*     src/Erd-Tools/src/FSParam     -Recurse -Force
-Copy-Item third_party/StudioUtils/* src/Erd-Tools/src/StudioUtils -Recurse -Force
+New-Item -ItemType Directory -Force -Path src/Erd-Tools/src/Erd-Tools/Models/Params/Defs | Out-Null
+Copy-Item third_party/FSParam/*      src/Erd-Tools/src/FSParam     -Recurse -Force
+Copy-Item third_party/StudioUtils/*  src/Erd-Tools/src/StudioUtils -Recurse -Force
+Copy-Item third_party/ErdToolsDefs/* src/Erd-Tools/src/Erd-Tools/Models/Params/Defs -Recurse -Force
 ```
 
 ```bash
 # bash
-mkdir -p src/Erd-Tools/src/FSParam src/Erd-Tools/src/StudioUtils
-cp -r third_party/FSParam/*     src/Erd-Tools/src/FSParam/
-cp -r third_party/StudioUtils/* src/Erd-Tools/src/StudioUtils/
+mkdir -p src/Erd-Tools/src/FSParam src/Erd-Tools/src/StudioUtils src/Erd-Tools/src/Erd-Tools/Models/Params/Defs
+cp -r third_party/FSParam/*      src/Erd-Tools/src/FSParam/
+cp -r third_party/StudioUtils/*  src/Erd-Tools/src/StudioUtils/
+cp -r third_party/ErdToolsDefs/* src/Erd-Tools/src/Erd-Tools/Models/Params/Defs/
 ```

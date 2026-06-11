@@ -17,17 +17,20 @@ jobs:
       with:
         dotnet-version: 6.0.x
 
-    # FSParam + StudioUtils are required by Erd-Tools but are not committed to the
-    # Erd-Tools submodule upstream (Nordgaren builds with them present locally). We vendor
-    # patched, net6-retargeted copies under third_party/ and drop them into the submodule's
-    # expected paths before restore. See third_party/README.md for provenance.
-    - name: vendor FSParam + StudioUtils into Erd-Tools submodule
+    # Several files required by Erd-Tools are not committed to the Erd-Tools submodule upstream
+    # (Nordgaren builds with them present locally). We vendor them under third_party/ and drop
+    # them into the submodule's expected paths before restore. See third_party/README.md for
+    # provenance. Covers: FSParam + StudioUtils (net6-retargeted), and the EquipParamWeapon
+    # param-def class (Models/Params/Defs) that ErdHook references.
+    - name: vendor missing Erd-Tools dependencies into submodule
       shell: pwsh
       run: |
         New-Item -ItemType Directory -Force -Path src/Erd-Tools/src/FSParam | Out-Null
         New-Item -ItemType Directory -Force -Path src/Erd-Tools/src/StudioUtils | Out-Null
-        Copy-Item -Path third_party/FSParam/*     -Destination src/Erd-Tools/src/FSParam     -Recurse -Force
-        Copy-Item -Path third_party/StudioUtils/* -Destination src/Erd-Tools/src/StudioUtils -Recurse -Force
+        New-Item -ItemType Directory -Force -Path src/Erd-Tools/src/Erd-Tools/Models/Params/Defs | Out-Null
+        Copy-Item -Path third_party/FSParam/*      -Destination src/Erd-Tools/src/FSParam      -Recurse -Force
+        Copy-Item -Path third_party/StudioUtils/*  -Destination src/Erd-Tools/src/StudioUtils  -Recurse -Force
+        Copy-Item -Path third_party/ErdToolsDefs/* -Destination src/Erd-Tools/src/Erd-Tools/Models/Params/Defs -Recurse -Force
 
     - name: restore dependencies
       run: dotnet restore

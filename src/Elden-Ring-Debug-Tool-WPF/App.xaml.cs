@@ -3,8 +3,11 @@ using SoulsFormats;
 using System;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
+using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Threading;
 using Erd_Tools;
 using System.Collections;
@@ -18,6 +21,12 @@ namespace Elden_Ring_Debug_Tool_WPF
     {
         public App()
         {
+            // WPF renders through DirectX; under Wine/Proton the hardware path frequently fails to
+            // present frames, leaving the window frozen except when a resize forces invalidation.
+            // Forcing the software rasterizer fixes rendering there. No effect on real Windows.
+            if (IsRunningUnderWine())
+                RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly;
+
             string[] args = Environment.GetCommandLineArgs();
 #if DEBUG
             //args = new[] { "", @"path\to\debug\file" };
@@ -133,6 +142,28 @@ namespace Elden_Ring_Debug_Tool_WPF
 
                 sb.Append($"{exception.StackTrace}\n\n\n");
                 File.AppendAllText(logFile, sb.ToString());
+            }
+        }
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true)]
+        private static extern IntPtr GetModuleHandleA(string lpModuleName);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true)]
+        private static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
+
+        /// <summary>
+        /// Wine exports wine_get_version from ntdll; real Windows does not.
+        /// </summary>
+        private static bool IsRunningUnderWine()
+        {
+            try
+            {
+                IntPtr ntdll = GetModuleHandleA("ntdll.dll");
+                return ntdll != IntPtr.Zero && GetProcAddress(ntdll, "wine_get_version") != IntPtr.Zero;
+            }
+            catch
+            {
+                return false;
             }
         }
     }

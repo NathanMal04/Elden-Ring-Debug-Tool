@@ -1,0 +1,23 @@
+diff --git a/PropertyHook/PHook.cs b/PropertyHook/PHook.cs
+index 050cd50..7d01c25 100644
+--- a/PropertyHook/PHook.cs
++++ b/PropertyHook/PHook.cs
+@@ -120,7 +120,17 @@ namespace PropertyHook
+         {
+             while (!ct.IsCancellationRequested)
+             {
+-                Refresh();
++                try
++                {
++                    Refresh();
++                }
++                catch (Exception)
++                {
++                    // An unhandled exception on this background thread terminates the whole host
++                    // application. Refresh can throw transiently (e.g. access denied reading a
++                    // candidate process's modules under Wine/Proton container boundaries, or the
++                    // process exiting mid-scan) - swallow and retry on the next tick instead.
++                }
+                 Thread.Sleep(RefreshInterval);
+             }
+         }

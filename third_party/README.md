@@ -28,6 +28,13 @@ locally via the command below.
 
   Note: FSParam types are fully qualified (`FSParam.Param.Row`) in these files — an enclosing
   `Erd_Tools.Models.Param` exists, so an unqualified `Param` binds to the wrong type.
+- **patches/propertyhook-autorefresh-no-crash.patch** — applied to the PropertyHook submodule by
+  the `patch PropertyHook submodule` CI step (`git -C src/Erd-Tools/src/PropertyHook apply ...`).
+  PropertyHook's `AutoRefresh` background thread calls `Refresh()` with no exception handling; an
+  unhandled exception on a background thread terminates the whole .NET app. `Refresh()` can throw
+  transiently — observed under Wine/Proton as `Win32Exception (5): Access denied` from
+  `Process.MainModule` when the tool and game sit in different pressure-vessel containers — which
+  crashed the tool on startup. The patch wraps the call in try/catch so it retries on the next tick.
 
 ## Provenance
 

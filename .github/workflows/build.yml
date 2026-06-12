@@ -32,6 +32,14 @@ jobs:
         Copy-Item -Path third_party/StudioUtils/*  -Destination src/Erd-Tools/src/StudioUtils  -Recurse -Force
         Copy-Item -Path third_party/ErdToolsDefs/* -Destination src/Erd-Tools/src/Erd-Tools/Models/Params/Defs -Recurse -Force
 
+    # PropertyHook's AutoRefresh background thread has no exception handling, so any transient
+    # failure while probing a process (e.g. access denied under Wine/Proton) kills the whole app.
+    # Patch it to swallow and retry. See third_party/README.md.
+    - name: patch PropertyHook submodule
+      shell: pwsh
+      run: |
+        git -C src/Erd-Tools/src/PropertyHook apply (Resolve-Path third_party/patches/propertyhook-autorefresh-no-crash.patch)
+
     - name: restore dependencies
       run: dotnet restore
       
